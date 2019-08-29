@@ -23,15 +23,9 @@
 #include "spdlog/spdlog.h"
 
 namespace Envoy {
-
-namespace Quic {
-class ActiveQuicListener;
-class EnvoyQuicDispatcher;
-} // namespace Quic
-
 namespace Server {
 
-#define ALL_LISTENER_STATS(COUNTER, GAUGE, HISTOGRAM)                                              \
+#define ALL_TCP_LISTENER_STATS(COUNTER, GAUGE, HISTOGRAM)                                          \
   COUNTER(downstream_cx_destroy)                                                                   \
   COUNTER(downstream_cx_total)                                                                     \
   COUNTER(downstream_pre_cx_timeout)                                                               \
@@ -41,10 +35,21 @@ namespace Server {
   HISTOGRAM(downstream_cx_length_ms)
 
 /**
- * Wrapper struct for listener stats. @see stats_macros.h
+ * Wrapper struct for TCP listener stats. @see stats_macros.h
  */
-struct ListenerStats {
-  ALL_LISTENER_STATS(GENERATE_COUNTER_STRUCT, GENERATE_GAUGE_STRUCT, GENERATE_HISTOGRAM_STRUCT)
+struct TcpListenerStats {
+  ALL_TCP_LISTENER_STATS(GENERATE_COUNTER_STRUCT, GENERATE_GAUGE_STRUCT, GENERATE_HISTOGRAM_STRUCT)
+};
+
+#define ALL_PER_WORKER_TCP_LISTENER_STATS(COUNTER, GAUGE)                                          \
+  COUNTER(downstream_cx_total)                                                                     \
+  GAUGE(downstream_cx_active, Accumulate)
+
+/**
+ * Wrapper struct for per-worker TCP listener stats. @see stats_macros.h
+ */
+struct PerWorkerTcpListenerStats {
+  ALL_PER_WORKER_TCP_LISTENER_STATS(GENERATE_COUNTER_STRUCT, GENERATE_GAUGE_STRUCT)
 };
 
 /**
@@ -53,7 +58,8 @@ struct ListenerStats {
  */
 class ConnectionHandlerImpl : public Network::ConnectionHandler, NonCopyable {
 public:
-  ConnectionHandlerImpl(spdlog::logger& logger, Event::Dispatcher& dispatcher);
+  ConnectionHandlerImpl(spdlog::logger& logger, Event::Dispatcher& dispatcher,
+                        const std::string& per_handler_stat_prefix);
 
   // Network::ConnectionHandler
   uint64_t numConnections() override { return num_connections_; }
@@ -82,7 +88,6 @@ public:
     void destroy() override { listener_.reset(); }
 
     Network::ListenerPtr listener_;
-    ListenerStats stats_;
     const std::chrono::milliseconds listener_filters_timeout_;
     const bool continue_on_listener_filters_timeout_;
     const uint64_t listener_tag_;
@@ -90,17 +95,14 @@ public:
   };
 
 private:
-  class ActiveUdpListener;
+  /*class ActiveUdpListener;
   using ActiveUdpListenerPtr = std::unique_ptr<ActiveUdpListener>;
   class ActiveTcpListener;
-  using ActiveTcpListenerPtr = std::unique_ptr<ActiveTcpListener>;
+  using ActiveTcpListenerPtr = std::unique_ptr<ActiveTcpListener>;fixfix*/
   struct ActiveConnection;
   using ActiveConnectionPtr = std::unique_ptr<ActiveConnection>;
   struct ActiveSocket;
   using ActiveSocketPtr = std::unique_ptr<ActiveSocket>;
-
-  friend class Quic::ActiveQuicListener;
-  friend class Quic::EnvoyQuicDispatcher;
 
   /**
    * Wrapper for an active tcp listener owned by this handler.
@@ -131,6 +133,8 @@ private:
     void newConnection(Network::ConnectionSocketPtr&& socket);
 
     ConnectionHandlerImpl& parent_;
+    TcpListenerStats stats_;
+    PerWorkerTcpListenerStats per_worker_stats_;
     std::list<ActiveSocketPtr> sockets_;
     std::list<ActiveConnectionPtr> connections_;
   };
@@ -203,10 +207,9 @@ private:
     Event::TimerPtr timer_;
   };
 
-  static ListenerStats generateStats(Stats::Scope& scope);
-
   spdlog::logger& logger_;
   Event::Dispatcher& dispatcher_;
+  const std::string per_handler_stat_prefix_;
   std::list<std::pair<Network::Address::InstanceConstSharedPtr,
                       Network::ConnectionHandler::ActiveListenerPtr>>
       listeners_;
@@ -240,7 +243,7 @@ public:
   Network::UdpListener& udpListener() override;
 
 private:
-  Network::UdpListener* udp_listener_;
+  Network::UdpListener& udp_listener_;
   Network::UdpListenerReadFilterPtr read_filter_;
 };
 
