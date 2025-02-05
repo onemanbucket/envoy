@@ -7,7 +7,7 @@ import "google/protobuf/struct.proto";
 
 import "udpa/annotations/status.proto";
 import "udpa/annotations/versioning.proto";
-import "validate/validate.proto";
+import "buf/validate/validate.proto";
 
 option java_package = "io.envoyproxy.envoy.extensions.filters.http.squash.v3";
 option java_outer_classname = "SquashProto";
@@ -25,7 +25,7 @@ message Squash {
       "envoy.config.filter.http.squash.v2.Squash";
 
   // The name of the cluster that hosts the Squash server.
-  string cluster = 1 [(validate.rules).string = {min_len: 1}];
+  string cluster = 1 [(buf.validate.field).string = {min_len: 1}];
 
   // When the filter requests the Squash server to create a DebugAttachment, it will use this
   // structure as template for the body of the request. It can contain reference to environment

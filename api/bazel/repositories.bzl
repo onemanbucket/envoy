@@ -25,6 +25,12 @@ def api_dependencies():
         patches = ["@envoy_api//bazel:pgv.patch"],
     )
     external_http_archive(
+        name = "com_envoyproxy_protovalidate",
+    )
+    external_http_archive(
+        name = "rules_buf",
+    )
+    external_http_archive(
         name = "com_google_googleapis",
     )
 

@@ -779,7 +779,7 @@ TEST_F(OriginalDstClusterTest, UseHttpAuthorityHeader) {
     lb_policy: CLUSTER_PROVIDED
     original_dst_lb_config:
       use_http_header: true
-      http_header_name: ":authority"
+      KNOWN_REGEX_HTTP_HEADER_VALUE: ":authority"
   )EOF";
 
   EXPECT_CALL(initialized_, ready());
@@ -810,13 +810,13 @@ TEST_F(OriginalDstClusterTest, BadConfigWithHttpHeaderNameAndClearedUseHttpHeade
     type: ORIGINAL_DST
     lb_policy: CLUSTER_PROVIDED
     original_dst_lb_config:
-      http_header_name: ":authority"
+      KNOWN_REGEX_HTTP_HEADER_VALUE: ":authority"
   )EOF";
 
   EXPECT_THROW_WITH_MESSAGE(
       setupFromYaml(yaml, false), EnvoyException,
-      "ORIGINAL_DST cluster: invalid config http_header_name=:authority and use_http_header is "
-      "false. Set use_http_header to true if http_header_name is desired.");
+      "ORIGINAL_DST cluster: invalid config KNOWN_REGEX_HTTP_HEADER_VALUE=:authority and use_http_header is "
+      "false. Set use_http_header to true if KNOWN_REGEX_HTTP_HEADER_VALUE is desired.");
 }
 
 TEST_F(OriginalDstClusterTest, UseHttpHeaderDisabled) {

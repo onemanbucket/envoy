@@ -122,14 +122,14 @@ OriginalDstCluster::LoadBalancer::filterStateOverrideHost(LoadBalancerContext* c
 
 Network::Address::InstanceConstSharedPtr
 OriginalDstCluster::LoadBalancer::requestOverrideHost(LoadBalancerContext* context) {
-  if (!http_header_name_.has_value()) {
+  if (!KNOWN_REGEX_HTTP_HEADER_VALUE_.has_value()) {
     return nullptr;
   }
   const Http::HeaderMap* downstream_headers = context->downstreamHeaders();
   if (!downstream_headers) {
     return nullptr;
   }
-  Http::HeaderMap::GetResult override_header = downstream_headers->get(*http_header_name_);
+  Http::HeaderMap::GetResult override_header = downstream_headers->get(*KNOWN_REGEX_HTTP_HEADER_VALUE_);
   if (override_header.empty()) {
     return nullptr;
   }
@@ -202,9 +202,9 @@ OriginalDstCluster::OriginalDstCluster(const envoy::config::cluster::v3::Cluster
   if (config.has_original_dst_lb_config()) {
     const auto& lb_config = config.original_dst_lb_config();
     if (lb_config.use_http_header()) {
-      http_header_name_ = lb_config.http_header_name().empty()
+      KNOWN_REGEX_HTTP_HEADER_VALUE_ = lb_config.KNOWN_REGEX_HTTP_HEADER_VALUE().empty()
                               ? Http::Headers::get().EnvoyOriginalDstHost
-                              : Http::LowerCaseString(lb_config.http_header_name());
+                              : Http::LowerCaseString(lb_config.KNOWN_REGEX_HTTP_HEADER_VALUE());
     }
     if (lb_config.has_metadata_key()) {
       metadata_key_ = Config::MetadataKey(lb_config.metadata_key());
@@ -336,11 +336,11 @@ OriginalDstClusterFactory::createClusterImpl(const envoy::config::cluster::v3::C
   }
 
   if (!cluster.original_dst_lb_config().use_http_header() &&
-      !cluster.original_dst_lb_config().http_header_name().empty()) {
+      !cluster.original_dst_lb_config().KNOWN_REGEX_HTTP_HEADER_VALUE().empty()) {
     return absl::InvalidArgumentError(fmt::format(
-        "ORIGINAL_DST cluster: invalid config http_header_name={} and use_http_header is "
-        "false. Set use_http_header to true if http_header_name is desired.",
-        cluster.original_dst_lb_config().http_header_name()));
+        "ORIGINAL_DST cluster: invalid config KNOWN_REGEX_HTTP_HEADER_VALUE={} and use_http_header is "
+        "false. Set use_http_header to true if KNOWN_REGEX_HTTP_HEADER_VALUE is desired.",
+        cluster.original_dst_lb_config().KNOWN_REGEX_HTTP_HEADER_VALUE()));
   }
 
   // TODO(mattklein123): The original DST load balancer type should be deprecated and instead

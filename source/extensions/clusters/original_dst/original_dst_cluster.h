@@ -89,7 +89,7 @@ public:
   class LoadBalancer : public Upstream::LoadBalancer {
   public:
     LoadBalancer(const OriginalDstClusterHandleSharedPtr& parent)
-        : parent_(parent), http_header_name_(parent->cluster_->httpHeaderName()),
+        : parent_(parent), KNOWN_REGEX_HTTP_HEADER_VALUE_(parent->cluster_->httpHeaderName()),
           metadata_key_(parent->cluster_->metadataKey()),
           port_override_(parent->cluster_->portOverride()),
           host_map_(parent->cluster_->getCurrentHostMap()) {}
@@ -117,13 +117,13 @@ public:
   private:
     const OriginalDstClusterHandleSharedPtr parent_;
     // The optional original host provider that extracts the address from HTTP header map.
-    const absl::optional<Http::LowerCaseString>& http_header_name_;
+    const absl::optional<Http::LowerCaseString>& KNOWN_REGEX_HTTP_HEADER_VALUE_;
     const absl::optional<Config::MetadataKey>& metadata_key_;
     const absl::optional<uint32_t> port_override_;
     HostMultiMapConstSharedPtr host_map_;
   };
 
-  const absl::optional<Http::LowerCaseString>& httpHeaderName() { return http_header_name_; }
+  const absl::optional<Http::LowerCaseString>& httpHeaderName() { return KNOWN_REGEX_HTTP_HEADER_VALUE_; }
   const absl::optional<Config::MetadataKey>& metadataKey() { return metadata_key_; }
   const absl::optional<uint32_t> portOverride() { return port_override_; }
 
@@ -180,7 +180,7 @@ private:
 
   absl::Mutex host_map_lock_;
   HostMultiMapConstSharedPtr host_map_ ABSL_GUARDED_BY(host_map_lock_);
-  absl::optional<Http::LowerCaseString> http_header_name_;
+  absl::optional<Http::LowerCaseString> KNOWN_REGEX_HTTP_HEADER_VALUE_;
   absl::optional<Config::MetadataKey> metadata_key_;
   absl::optional<uint32_t> port_override_;
   friend class OriginalDstClusterFactory;

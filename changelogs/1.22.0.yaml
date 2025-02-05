@@ -321,8 +321,8 @@ new_features:
     <envoy_v3_api_field_config.cluster.v3.CircuitBreakers.Thresholds.max_connections>` is supported.
 - area: cluster
   change: |
-    added support to restore original destination address from any desired header via setting :ref:`http_header_name
-    <envoy_v3_api_field_config.cluster.v3.Cluster.OriginalDstLbConfig.http_header_name>`.
+    added support to restore original destination address from any desired header via setting :ref:`KNOWN_REGEX_HTTP_HEADER_VALUE
+    <envoy_v3_api_field_config.cluster.v3.Cluster.OriginalDstLbConfig.KNOWN_REGEX_HTTP_HEADER_VALUE>`.
 - area: cluster
   change: |
     support :ref:`override host status restriction
